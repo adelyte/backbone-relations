@@ -8,8 +8,8 @@ do (root = this, factory = (exports, Backbone, _) ->
       @::models[name] = this
 
     @many: (association, model, options) ->
-      console.log "many association: #{association}, model: #{model}, options: #{options}"
-      console.log "many @::models: #{name for name of @::models}, model: #{@::models[model]}"
+      # console.log "many association: #{association}, model: #{model}, options: #{options}"
+      # console.log "many @::models: #{name for name of @::models}, model: #{@::models[model]}"
 
   exports.RelationalModel = RelationalModel
 

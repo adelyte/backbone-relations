@@ -3,10 +3,10 @@ var __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 describe('RelationalModel', function() {
-  it('should be defined', function() {
+  it('is defined', function() {
     return expect(RelationalModel).toBeDefined();
   });
-  return it('should record class names', function() {
+  return it('records class names', function() {
     var Project, Room, name;
     Project = (function(_super) {
       __extends(Project, _super);
@@ -18,7 +18,8 @@ describe('RelationalModel', function() {
       Project.registerModel('Project');
 
       Project.many('rooms', 'Room', {
-        embedded: true
+        embeds: true,
+        inverse: 'project'
       });
 
       return Project;
@@ -33,13 +34,16 @@ describe('RelationalModel', function() {
 
       Room.registerModel('Room');
 
-      Room.many('projects', 'Project', {
-        embedded: true
+      Room.one('project', 'Project', {
+        embedded: true,
+        inverse: 'rooms'
       });
 
       return Room;
 
     })(RelationalModel);
+    expect(new Project().models['Project']).toEqual(Project);
+    expect(new Project().models['Room']).toEqual(Room);
     console.log("Project.models = " + ((function() {
       var _results;
       _results = [];
