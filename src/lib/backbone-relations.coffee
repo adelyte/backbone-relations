@@ -12,8 +12,9 @@ do (root = this, factory = (exports, Backbone, _) ->
       # console.log "many @::models: #{name for name of @::models}, model: #{@::models[model]}"
 
   exports.RelationalModel = RelationalModel
+  return
 
-  ) ->
+) ->
   if (define?.amd)
     define ['exports', 'backbone', 'underscore'], factory
   else if (exports?)
