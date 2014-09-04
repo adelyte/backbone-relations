@@ -145,11 +145,24 @@ describe('Project', function() {
       expect(rooms.length).toEqual(1);
       return expect(rooms.first()).toEqual(jasmine.any(Room));
     });
-    return it('instantiate lazily', function() {
+    it('instantiate lazily', function() {
       var rooms;
       expect(project._rooms).toBeUndefined();
       rooms = project.get('rooms');
       return expect(project._rooms).toBeDefined();
+    });
+    it('embed within project', function() {
+      var room, rooms;
+      rooms = project.get('rooms');
+      room = rooms.first();
+      return expect(room.get('project')).toBe(project);
+    });
+    return it('link to zones through project', function() {
+      var room, rooms, zones;
+      rooms = project.get('rooms');
+      room = rooms.first();
+      zones = room.get('zones');
+      return expect(zones).toBe(project.get('zones'));
     });
   });
   return describe('zones', function() {
@@ -160,11 +173,24 @@ describe('Project', function() {
       expect(zones.length).toEqual(2);
       return expect(zones.first()).toEqual(jasmine.any(Zone));
     });
-    return it('instantiate lazily', function() {
+    it('instantiate lazily', function() {
       var zones;
       expect(project._zones).toBeUndefined();
       zones = project.get('zones');
       return expect(project._zones).toBeDefined();
+    });
+    it('embed within project', function() {
+      var zone, zones;
+      zones = project.get('zones');
+      zone = zones.first();
+      return expect(zone.get('project')).toBe(project);
+    });
+    return it('link to rooms through project', function() {
+      var rooms, zone, zones;
+      zones = project.get('zones');
+      zone = zones.first();
+      rooms = zone.get('rooms');
+      return expect(rooms).toBe(project.get('rooms'));
     });
   });
 });

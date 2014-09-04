@@ -84,6 +84,19 @@ describe 'Project', ->
 
       expect(project._rooms).toBeDefined()
 
+    it 'embed within project', ->
+      rooms = project.get 'rooms'
+      room  = rooms.first()
+
+      expect(room.get 'project').toBe(project)
+
+    it 'link to zones through project', ->
+      rooms = project.get 'rooms'
+      room  = rooms.first()
+      zones = room.get 'zones'
+
+      expect(zones).toBe(project.get 'zones')
+
   describe 'zones', ->
     it 'create a collection', ->
       zones = project.get 'zones'
@@ -98,6 +111,19 @@ describe 'Project', ->
       zones = project.get 'zones'
 
       expect(project._zones).toBeDefined()
+
+    it 'embed within project', ->
+      zones = project.get 'zones'
+      zone  = zones.first()
+
+      expect(zone.get 'project').toBe(project)
+
+    it 'link to rooms through project', ->
+      zones = project.get 'zones'
+      zone  = zones.first()
+      rooms = zone.get 'rooms'
+
+      expect(rooms).toBe(project.get 'rooms')
 
 describe 'Room', ->
   describe 'instantiated directly', ->

@@ -16,6 +16,7 @@ do (root = this, factory = (exports, Backbone, _) ->
           model: model
           embeds: options.embeds
           embedded: options.embedded
+          through: options.through
           inverse: options.inverse
 
     @many: (name, model, options) ->
@@ -23,29 +24,38 @@ do (root = this, factory = (exports, Backbone, _) ->
 
       @_relational.define.call this, name, model, true, options
 
+      # TODO: add mechanism to force reload association
       @::mutators[name] = () ->
         return @["_#{name}"] if @["_#{name}"]
 
         definition = @constructor._associations[name]
-        # console.log "#{@__name__} #{name} #{JSON.stringify definition}"
-
-        data = switch
-          when definition.embeds
-            @get('linked')?[name]
-          else
-            throw "many #{name} must be #embeds"
-
         model = @constructor::models[definition.model]
         Collection = Backbone.Collection.extend model: model
-        @["_#{name}"] = new Collection data
+        # console.log "#{@__name__} #{name} #{JSON.stringify definition}"
 
-        inverse = definition.inverse
-        if model._associations[inverse] # TODO: consider deeper validation
-          @["_#{name}"].each (member) ->
-            member.set "_#{inverse}", this
-          , this
-        else
-          throw "#{model::__name__} missing inverse association '#{inverse}'"
+        switch
+          when definition.embeds
+            @["_#{name}"] = new Collection @get('linked')?[name]
+
+            inverse = definition.inverse
+            if model._associations[inverse] # TODO: consider deeper validation
+              @["_#{name}"].each (member) ->
+                member["_#{inverse}"] = this
+              , this
+            else
+              throw "#{model::__name__} missing inverse association '#{inverse}'"
+
+          when definition.through
+            if model._associations[definition.through].plural
+              @["_#{name}"] = new Collection
+              @.get(definition.through).each (member) ->
+                @["_#{name}"].add member.get(definition.source ? name)?.models
+              , this
+            else
+              @["_#{name}"] = @.get(definition.through)?.get(definition.source ? name) # TODO: this is identical to a delegate
+
+          else
+            throw "many #{name} must be #embeds or #through"
 
         @["_#{name}"]
 
