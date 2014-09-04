@@ -25,7 +25,7 @@ do (root = this, factory = (exports, Backbone, _) ->
       @_relational.define.call this, name, model, true, options
 
       # TODO: add mechanism to force reload association
-      @::mutators[name] = () ->
+      @::mutators[name] = ->
         return @["_#{name}"] if @["_#{name}"]
 
         definition = @constructor._associations[name]
@@ -49,7 +49,17 @@ do (root = this, factory = (exports, Backbone, _) ->
             if model._associations[definition.through].plural
               @["_#{name}"] = new Collection
               @.get(definition.through).each (member) ->
-                @["_#{name}"].add member.get(definition.source ? name)?.models
+                if through = member.get(definition.source ? name)
+                  @["_#{name}"].add through.models
+
+                  @listenTo through, 'add', (model, collection, options) ->
+                    @["_#{name}"].add model
+
+                  @listenTo through, 'remove', (model, collection, options) ->
+                    exists = @.get(definition.through).find (member) ->
+                      _through = member.get(definition.source ? name)
+                      _through.get(model.id)
+                    unless exists then @["_#{name}"].remove model
               , this
             else
               @["_#{name}"] = @.get(definition.through)?.get(definition.source ? name) # TODO: this is identical to a delegate
@@ -66,7 +76,7 @@ do (root = this, factory = (exports, Backbone, _) ->
 
       @_relational.define.call this, name, model, false, options
 
-      @::mutators[name] = () ->
+      @::mutators[name] = ->
         return @["_#{name}"] if @["_#{name}"]
 
         definition = @constructor._associations[name]

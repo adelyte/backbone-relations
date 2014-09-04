@@ -4,6 +4,7 @@ class Project extends RelationalModel
 
   @many 'rooms', 'Room', { embeds: true, inverse: 'project' }
   @many 'zones', 'Zone', { embeds: true, inverse: 'project' }
+  @many 'sources', 'Source', { embeds: true, inverse: 'project' }
 
   toString: ->
     "#{@constructor::__name__}:#{@id}"
@@ -13,6 +14,17 @@ class Room extends RelationalModel
 
   @one 'project', 'Project', { embedded: true, inverse: 'rooms' }
   @many 'zones', 'Zone', { through: 'project', inverse: 'rooms' }
+  @many 'sources', 'Source', { through: 'zones', inverse: 'rooms' }
+
+  toString: ->
+    "#{@constructor::__name__}:#{@id}"
+
+class Source extends RelationalModel
+  @registerModel('Source')
+
+  @one 'project', 'Project', { embedded: true, inverse: 'sources' }
+  @many 'zones', 'Zone', { through: 'project', inverse: 'sources' }
+  @many 'rooms', 'Room', { through: 'zones', inverse: 'sources' }
 
   toString: ->
     "#{@constructor::__name__}:#{@id}"
@@ -22,6 +34,7 @@ class Zone extends RelationalModel
 
   @one 'project', 'Project', { embedded: true, inverse: 'rooms' }
   @many 'rooms', 'Room', { through: 'project', inverse: 'zones' }
+  @many 'sources', 'Source', { through: 'project', inverse: 'zones' }
 
   toString: ->
     "#{@constructor::__name__}:#{@id}"
@@ -53,6 +66,12 @@ describe 'Project', ->
           id: 'oval-office'
           links:
             zones: ['oval-office-video', 'oval-office-audio']
+        ]
+        sources: [
+          name: 'DirecTV'
+          id: 'directv'
+          links:
+            zones: ['oval-office-video']
         ]
         zones: [
           name: 'Oval Office Video'
@@ -96,6 +115,31 @@ describe 'Project', ->
       zones = room.get 'zones'
 
       expect(zones).toBe(project.get 'zones')
+
+    it 'link to sources through zones', ->
+      rooms = project.get 'rooms'
+      room  = rooms.first()
+      sources = room.get 'sources'
+
+      expect(sources.length).toEqual(1)
+
+    it 'updates sources through zones', ->
+      rooms = project.get 'rooms'
+      room  = rooms.first()
+      sources = room.get 'sources'
+
+      expect(sources.length).toEqual(1)
+
+      zones = room.get 'zones'
+      zone  = zones.first()
+      source = new Source
+      zone.get('sources').add source # TODO: fix project embedding through assignment
+
+      expect(sources.length).toEqual(2)
+
+      zone.get('sources').remove source
+
+      expect(sources.length).toEqual(1)
 
   describe 'zones', ->
     it 'create a collection', ->
