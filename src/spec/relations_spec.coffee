@@ -1,13 +1,15 @@
 # TODO: move example classes to separate files
+class Base extends RelationalModel
+  toString: ->
+    "#{@constructor::__name__}:#{@id}"
+
 class Project extends RelationalModel
   @registerModel('Project')
 
   @many 'rooms', 'Room', { embeds: true, inverse: 'project' }
   @many 'zones', 'Zone', { embeds: true, inverse: 'project' }
-  @many 'sources', 'Source', { embeds: true, inverse: 'project' }
-
-  toString: ->
-    "#{@constructor::__name__}:#{@id}"
+  @many 'components', 'Component', { embeds: true, inverse: 'project' }
+  @many 'sources', 'Source', { through: 'components', inverse: 'project' }
 
 class Room extends RelationalModel
   @registerModel('Room')
@@ -16,28 +18,26 @@ class Room extends RelationalModel
   @many 'zones', 'Zone', { through: 'project', inverse: 'rooms' }
   @many 'sources', 'Source', { through: 'zones', inverse: 'rooms' }
 
-  toString: ->
-    "#{@constructor::__name__}:#{@id}"
+class Zone extends RelationalModel
+  @registerModel('Zone')
+
+  @one 'project', 'Project', { embedded: true, inverse: 'zones' }
+  @many 'rooms', 'Room', { through: 'project', inverse: 'zones' }
+  @many 'sources', 'Source', { through: 'project', inverse: 'zones' }
+
+class Component extends RelationalModel
+  @registerModel('Component')
+
+  @one 'project', 'Project', { embedded: true, inverse: 'components' }
+  @many 'sources', 'Source', { embeds: true, inverse: 'component' }
 
 class Source extends RelationalModel
   @registerModel('Source')
 
-  @one 'project', 'Project', { embedded: true, inverse: 'sources' }
+  @one 'component', 'Component', { embedded: true, inverse: 'sources' }
+  @one 'project', 'Project', { through: 'component', inverse: 'sources' }
   @many 'zones', 'Zone', { through: 'project', inverse: 'sources' }
   @many 'rooms', 'Room', { through: 'zones', inverse: 'sources' }
-
-  toString: ->
-    "#{@constructor::__name__}:#{@id}"
-
-class Zone extends RelationalModel
-  @registerModel('Zone')
-
-  @one 'project', 'Project', { embedded: true, inverse: 'rooms' }
-  @many 'rooms', 'Room', { through: 'project', inverse: 'zones' }
-  @many 'sources', 'Source', { through: 'project', inverse: 'zones' }
-
-  toString: ->
-    "#{@constructor::__name__}:#{@id}"
 
 
 describe 'RelationalModel', ->
@@ -67,12 +67,6 @@ describe 'Project', ->
           links:
             zones: ['oval-office-video', 'oval-office-audio']
         ]
-        sources: [
-          name: 'DirecTV'
-          id: 'directv'
-          links:
-            zones: ['oval-office-video']
-        ]
         zones: [
           name: 'Oval Office Video'
           id: 'oval-office-video'
@@ -83,6 +77,17 @@ describe 'Project', ->
           id: 'oval-office-audio'
           links:
             rooms: ['oval-office']
+        ]
+        components: [
+          name: 'DirecTV HR-24'
+          id: 'directv-hr-24'
+          linked:
+            sources: [
+              name: 'DirecTV'
+              id: 'directv'
+              links:
+                zones: ['oval-office-video']
+            ]
         ]
 
   it 'has a name', ->
