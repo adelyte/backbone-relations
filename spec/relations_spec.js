@@ -67,6 +67,7 @@ Room = (function(_super) {
 
   Room.many('zones', 'Zone', {
     through: 'project',
+    links: true,
     inverse: 'rooms'
   });
 
@@ -95,11 +96,13 @@ Zone = (function(_super) {
 
   Zone.many('rooms', 'Room', {
     through: 'project',
+    links: true,
     inverse: 'zones'
   });
 
   Zone.many('sources', 'Source', {
     through: 'project',
+    links: true,
     inverse: 'zones'
   });
 
@@ -151,6 +154,7 @@ Source = (function(_super) {
 
   Source.many('zones', 'Zone', {
     through: 'project',
+    links: true,
     inverse: 'sources'
   });
 
@@ -185,6 +189,7 @@ describe('Project', function() {
   beforeEach(function() {
     return project = new Project({
       name: 'White House',
+      id: 'white-house',
       linked: {
         rooms: [
           {
@@ -193,6 +198,12 @@ describe('Project', function() {
             links: {
               zones: ['oval-office-video', 'oval-office-audio']
             }
+          }, {
+            name: 'Study',
+            id: 'study',
+            links: {
+              zones: ['study-video']
+            }
           }
         ],
         zones: [
@@ -200,13 +211,21 @@ describe('Project', function() {
             name: 'Oval Office Video',
             id: 'oval-office-video',
             links: {
-              rooms: ['oval-office']
+              rooms: ['oval-office'],
+              sources: ['directv-hr-24']
             }
           }, {
             name: 'Oval Office Audio',
             id: 'oval-office-audio',
             links: {
               rooms: ['oval-office']
+            }
+          }, {
+            name: 'Study Video',
+            id: 'study-video',
+            links: {
+              rooms: ['study'],
+              sources: ['apple-tv']
             }
           }
         ],
@@ -218,9 +237,23 @@ describe('Project', function() {
               sources: [
                 {
                   name: 'DirecTV',
-                  id: 'directv',
+                  id: 'directv-hr-24',
                   links: {
                     zones: ['oval-office-video']
+                  }
+                }
+              ]
+            }
+          }, {
+            name: 'Apple TV',
+            id: 'apple-tv',
+            linked: {
+              sources: [
+                {
+                  name: 'Apple TV',
+                  id: 'apple-tv',
+                  links: {
+                    zones: ['study-video']
                   }
                 }
               ]
@@ -238,7 +271,7 @@ describe('Project', function() {
       var rooms;
       rooms = project.get('rooms');
       expect(rooms).toEqual(jasmine.any(Backbone.Collection));
-      expect(rooms.length).toEqual(1);
+      expect(rooms.length).toEqual(2);
       return expect(rooms.first()).toEqual(jasmine.any(Room));
     });
     it('instantiate lazily', function() {
@@ -258,12 +291,15 @@ describe('Project', function() {
       rooms = project.get('rooms');
       room = rooms.first();
       zones = room.get('zones');
-      return expect(zones).toBe(project.get('zones'));
+      expect(zones).toEqual(jasmine.any(Backbone.Collection));
+      return expect(zones.length).toEqual(2);
     });
     it('link to sources through zones', function() {
-      var room, rooms, sources;
+      var room, rooms, sources, zones;
       rooms = project.get('rooms');
       room = rooms.first();
+      zones = room.get('zones');
+      expect(zones.length).toEqual(2);
       sources = room.get('sources');
       return expect(sources.length).toEqual(1);
     });
@@ -287,7 +323,7 @@ describe('Project', function() {
       var zones;
       zones = project.get('zones');
       expect(zones).toEqual(jasmine.any(Backbone.Collection));
-      expect(zones.length).toEqual(2);
+      expect(zones.length).toEqual(3);
       return expect(zones.first()).toEqual(jasmine.any(Zone));
     });
     it('instantiate lazily', function() {
@@ -302,12 +338,20 @@ describe('Project', function() {
       zone = zones.first();
       return expect(zone.get('project')).toBe(project);
     });
-    return it('link to rooms through project', function() {
+    it('link to rooms through project', function() {
       var rooms, zone, zones;
       zones = project.get('zones');
       zone = zones.first();
       rooms = zone.get('rooms');
-      return expect(rooms).toBe(project.get('rooms'));
+      expect(rooms).toEqual(jasmine.any(Backbone.Collection));
+      return expect(rooms.length).toEqual(1);
+    });
+    return it('link to sources through project', function() {
+      var sources, zone, zones;
+      zones = project.get('zones');
+      zone = zones.first();
+      sources = zone.get('sources');
+      return expect(sources.length).toEqual(1);
     });
   });
 });

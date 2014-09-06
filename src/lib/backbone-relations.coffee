@@ -17,10 +17,12 @@ do (root = this, factory = (exports, Backbone, _) ->
           embeds: options.embeds
           embedded: options.embedded
           through: options.through
+          links: options.links
+          source: options.source
           inverse: options.inverse
 
     @many: (name, model, options) ->
-      # console.log "#{@::__name__}.many #{name}, #{model}, options: #{JSON.stringify options}"
+      # console.log "#{@::__name__}.many '#{name}', '#{model}', options: #{JSON.stringify options}"
 
       @_relational.define.call this, name, model, true, options
 
@@ -28,10 +30,12 @@ do (root = this, factory = (exports, Backbone, _) ->
       @::mutators[name] = ->
         return @["_#{name}"] if @["_#{name}"]
 
+        # console.log "#{@__name__}##{@id}.get '#{name}'"
+
         definition = @constructor._associations[name]
         model = @constructor::models[definition.model]
         Collection = Backbone.Collection.extend model: model
-        # console.log "#{@__name__}.many #{name} #{JSON.stringify definition}"
+        # console.log "#{@__name__}.many '#{name}' #{JSON.stringify definition}"
 
         switch
           when definition.embeds
@@ -48,21 +52,29 @@ do (root = this, factory = (exports, Backbone, _) ->
           when definition.through
             if @constructor._associations[definition.through].plural
               @["_#{name}"] = new Collection
+
               @.get(definition.through).each (member) ->
                 if through = member.get(definition.source ? name)
                   @["_#{name}"].add through.models
 
-                  @listenTo through, 'add', (model, collection, options) ->
-                    @["_#{name}"].add model
+                  unless definition.links
+                    @listenTo through, 'add', (model, collection, options) ->
+                      @["_#{name}"].add model
 
-                  @listenTo through, 'remove', (model, collection, options) ->
-                    exists = @.get(definition.through).find (member) ->
-                      _through = member.get(definition.source ? name)
-                      _through.get(model.id)
-                    unless exists then @["_#{name}"].remove model
+                    @listenTo through, 'remove', (model, collection, options) ->
+                      exists = @.get(definition.through).find (member) ->
+                        _through = member.get(definition.source ? name)
+                        _through.get(model.id)
+                      unless exists then @["_#{name}"].remove model
               , this
+
             else
               @["_#{name}"] = @.get(definition.through)?.get(definition.source ? name) # TODO: this is identical to a delegate
+
+            if definition.links and links = @get('links')?[name]
+              @["_#{name}"].each (member) ->
+                @["_#{name}"].remove(member) unless member.id in links
+              , this
 
           else
             throw "many #{name} must be #embeds or #through"

@@ -15,15 +15,15 @@ class Room extends RelationalModel
   @registerModel('Room')
 
   @one 'project', 'Project', { embedded: true, inverse: 'rooms' }
-  @many 'zones', 'Zone', { through: 'project', inverse: 'rooms' }
+  @many 'zones', 'Zone', { through: 'project', links: true, inverse: 'rooms' }
   @many 'sources', 'Source', { through: 'zones', inverse: 'rooms' }
 
 class Zone extends RelationalModel
   @registerModel('Zone')
 
   @one 'project', 'Project', { embedded: true, inverse: 'zones' }
-  @many 'rooms', 'Room', { through: 'project', inverse: 'zones' }
-  @many 'sources', 'Source', { through: 'project', inverse: 'zones' }
+  @many 'rooms', 'Room', { through: 'project', links: true, inverse: 'zones' }
+  @many 'sources', 'Source', { through: 'project', links: true, inverse: 'zones' }
 
 class Component extends RelationalModel
   @registerModel('Component')
@@ -36,7 +36,7 @@ class Source extends RelationalModel
 
   @one 'component', 'Component', { embedded: true, inverse: 'sources' }
   @one 'project', 'Project', { through: 'component', inverse: 'sources' }
-  @many 'zones', 'Zone', { through: 'project', inverse: 'sources' }
+  @many 'zones', 'Zone', { through: 'project', links: true, inverse: 'sources' }
   @many 'rooms', 'Room', { through: 'zones', inverse: 'sources' }
 
 
@@ -60,23 +60,36 @@ describe 'Project', ->
   beforeEach ->
     project = new Project
       name: 'White House'
+      id: 'white-house'
       linked:
         rooms: [
           name: 'Oval Office'
           id: 'oval-office'
           links:
             zones: ['oval-office-video', 'oval-office-audio']
+        ,
+          name: 'Study'
+          id: 'study'
+          links:
+            zones: ['study-video']
         ]
         zones: [
           name: 'Oval Office Video'
           id: 'oval-office-video'
           links:
             rooms: ['oval-office']
+            sources: ['directv-hr-24']
         ,
           name: 'Oval Office Audio'
           id: 'oval-office-audio'
           links:
             rooms: ['oval-office']
+        ,
+          name: 'Study Video'
+          id: 'study-video'
+          links:
+            rooms: ['study']
+            sources: ['apple-tv']
         ]
         components: [
           name: 'DirecTV HR-24'
@@ -84,9 +97,19 @@ describe 'Project', ->
           linked:
             sources: [
               name: 'DirecTV'
-              id: 'directv'
+              id: 'directv-hr-24'
               links:
                 zones: ['oval-office-video']
+            ]
+        ,
+          name: 'Apple TV'
+          id: 'apple-tv'
+          linked:
+            sources: [
+              name: 'Apple TV'
+              id: 'apple-tv'
+              links:
+                zones: ['study-video']
             ]
         ]
 
@@ -98,7 +121,7 @@ describe 'Project', ->
       rooms = project.get 'rooms'
 
       expect(rooms).toEqual(jasmine.any Backbone.Collection)
-      expect(rooms.length).toEqual(1)
+      expect(rooms.length).toEqual(2)
       expect(rooms.first()).toEqual(jasmine.any Room)
 
     it 'instantiate lazily', ->
@@ -119,11 +142,16 @@ describe 'Project', ->
       room  = rooms.first()
       zones = room.get 'zones'
 
-      expect(zones).toBe(project.get 'zones')
+      expect(zones).toEqual(jasmine.any Backbone.Collection)
+      expect(zones.length).toEqual(2)
 
     it 'link to sources through zones', ->
       rooms = project.get 'rooms'
       room  = rooms.first()
+      zones = room.get 'zones'
+
+      expect(zones.length).toEqual(2)
+
       sources = room.get 'sources'
 
       expect(sources.length).toEqual(1)
@@ -151,7 +179,7 @@ describe 'Project', ->
       zones = project.get 'zones'
 
       expect(zones).toEqual(jasmine.any Backbone.Collection)
-      expect(zones.length).toEqual(2)
+      expect(zones.length).toEqual(3)
       expect(zones.first()).toEqual(jasmine.any Zone)
 
     it 'instantiate lazily', ->
@@ -172,7 +200,15 @@ describe 'Project', ->
       zone  = zones.first()
       rooms = zone.get 'rooms'
 
-      expect(rooms).toBe(project.get 'rooms')
+      expect(rooms).toEqual(jasmine.any Backbone.Collection)
+      expect(rooms.length).toEqual(1)
+
+    it 'link to sources through project', ->
+      zones = project.get 'zones'
+      zone  = zones.first()
+      sources = zone.get 'sources'
+
+      expect(sources.length).toEqual(1)
 
 describe 'Room', ->
   describe 'instantiated directly', ->
