@@ -94,11 +94,21 @@ do (root = this, factory = (exports, Backbone, _) ->
         definition = @constructor._associations[name]
         # console.log "#{@__name__}.one #{name} #{JSON.stringify definition}"
 
-        data = switch
+        switch
           when definition.embedded
             throw "#{this} must be instantiated from #{name}, eg #{name}.get('#{definition.inverse}')"
+          when definition.through
+            if @constructor._associations[definition.through].plural
+              throw "#{this} one #{name} through many #{definition.through} is unsupported"
+            else
+              @["_#{name}"] = @get(definition.through).get(definition.source ? name)
+
+              if definition.links and link = @get('links')?[name]
+                @["_#{name}"] = @["_#{name}"].get(link)
           else
             throw "#{@__name__} one #{name} must be #embeds"
+
+        @["_#{name}"]
 
       @_associations[name]
 
@@ -109,6 +119,6 @@ do (root = this, factory = (exports, Backbone, _) ->
   if (define?.amd)
     define ['exports', 'backbone', 'underscore'], factory
   else if (exports?)
-    factory exports, require('backbone'), require('underscore')
+    factory exports, require('vendor/backbone'), require('vendor/underscore')
   else
     factory root, root.Backbone, root._
