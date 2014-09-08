@@ -79,6 +79,7 @@ do (root = this, factory = (exports, Backbone, _) ->
           else
             throw "many #{name} must be #embeds or #through"
 
+        @trigger "initialize:#{name}"
         @["_#{name}"]
 
       @_associations[name]
@@ -108,6 +109,7 @@ do (root = this, factory = (exports, Backbone, _) ->
           else
             throw "#{@__name__} one #{name} must be #embeds"
 
+        @trigger "initialize:#{name}"
         @["_#{name}"]
 
       @_associations[name]
