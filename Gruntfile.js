@@ -32,9 +32,6 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    exec_jshint: {
-      all: ['Gruntfile.js', 'bundle.js', 'lib/**/*.js', 'test/**/*.js']
-    },
 
     powerbuild: {
       options: {
@@ -119,18 +116,15 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-debug');
   grunt.loadNpmTasks('grunt-newer');
   grunt.loadNpmTasks('grunt-release');
-  grunt.loadNpmTasks('grunt-exec-jshint');
   grunt.loadNpmTasks('grunt-saucelabs');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.registerTask('test', [
-    'newer:exec_jshint',
     'powerbuild:test',
     'mocha_debug'
   ]);
 
   grunt.registerTask('rebuild', [
     'clean',
-    'newer:exec_jshint',
     'powerbuild',
     'mocha_debug'
   ]);
