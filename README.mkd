@@ -1,0 +1,29 @@
+# backbone-relations
+
+> The best project ever.
+
+#### Node.js:
+[![Build Status](https://travis-ci.org//backbone-relations.png)](https://travis-ci.org//backbone-relations)
+
+#### Browsers:
+[![Selenium Test Status](https://saucelabs.com/browser-matrix/_backbone-relations.svg)](https://saucelabs.com/u/_backbone-relations)
+
+
+## Installation
+
+```sh
+npm install --save backbone-relations
+```
+
+## Usage
+
+## Development
+
+Clone, install dependencies and re-test whenever some file is modified:
+
+```sh
+git clone https://github.com/adelyte/backbone-relations.git
+cd backbone-relations
+npm install
+grunt
+```

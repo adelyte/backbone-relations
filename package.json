@@ -1,0 +1,36 @@
+{
+  "name": "backbone-relations",
+  "description": "The best project ever.",
+  "version": "0.0.0",
+  "homepage": "https://github.com/adelyte/backbone-relations",
+  "author": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adelyte/backbone-relations.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adelyte/backbone-relations/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/adelyte/backbone-relations/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "./index",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-livereload": "^0.1.2",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-exec-jshint": "~0.0.0",
+    "grunt-mocha-debug": "~0.0.10",
+    "grunt-newer": "~0.5.4",
+    "grunt-release": "~0.5.1",
+    "grunt-saucelabs": "~4.1.2",
+    "powerbuild": "0.0.11"
+  },
+  "scripts": {
+    "test": "grunt ci"
+  }
+}

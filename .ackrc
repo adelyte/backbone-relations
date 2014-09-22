@@ -1,0 +1,5 @@
+# project-specific ackrc
+--ignore-dir=node_modules
+--ignore-dir=components
+--ignore-dir=build
+--ignore-dir=tmp
